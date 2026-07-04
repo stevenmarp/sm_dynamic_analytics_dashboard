@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sm_analytics_dashboard_user,sm.analytics.dashboard user,model_sm_analytics_dashboard,group_sm_analytics_user,1,0,0,0
+access_sm_analytics_block_user,sm.analytics.block user,model_sm_analytics_block,group_sm_analytics_user,1,0,0,0
+access_sm_analytics_analysis_user,sm.analytics.analysis user,model_sm_analytics_analysis,group_sm_analytics_user,1,0,0,0
+access_sm_analytics_dashboard_manager,sm.analytics.dashboard manager,model_sm_analytics_dashboard,group_sm_analytics_manager,1,1,1,1
+access_sm_analytics_block_manager,sm.analytics.block manager,model_sm_analytics_block,group_sm_analytics_manager,1,1,1,1
+access_sm_analytics_analysis_manager,sm.analytics.analysis manager,model_sm_analytics_analysis,group_sm_analytics_manager,1,1,1,1
+access_sm_analytics_template_wizard_manager,sm.analytics.template.wizard manager,model_sm_analytics_template_wizard,group_sm_analytics_manager,1,1,1,1
