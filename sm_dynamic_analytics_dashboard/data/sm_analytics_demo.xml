@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="sm_analysis_users_by_company" model="sm.analytics.analysis">
+        <field name="name">Users by Company</field>
+        <field name="source_type">model</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="groupby_field_id" search="[('model_id.model','=','res.users'),('name','=','company_id')]" model="ir.model.fields"/>
+        <field name="aggregate">count</field>
+        <field name="limit">10</field>
+    </record>
+
+    <record id="sm_analysis_partner_count" model="sm.analytics.analysis">
+        <field name="name">Contact Count</field>
+        <field name="source_type">model</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="aggregate">count</field>
+        <field name="date_field_id" search="[('model_id.model','=','res.partner'),('name','=','create_date')]" model="ir.model.fields"/>
+        <field name="limit">10</field>
+    </record>
+
+    <record id="sm_analysis_partner_by_month" model="sm.analytics.analysis">
+        <field name="name">Contacts by Month</field>
+        <field name="source_type">model</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="groupby_field_id" search="[('model_id.model','=','res.partner'),('name','=','create_date')]" model="ir.model.fields"/>
+        <field name="date_field_id" search="[('model_id.model','=','res.partner'),('name','=','create_date')]" model="ir.model.fields"/>
+        <field name="aggregate">count</field>
+        <field name="limit">12</field>
+    </record>
+
+    <record id="sm_dashboard_main" model="sm.analytics.dashboard">
+        <field name="name">SM Analytics Overview</field>
+        <field name="enable_date_filter" eval="True"/>
+    </record>
+
+    <record id="sm_block_partner_kpi" model="sm.analytics.block">
+        <field name="name">Contacts</field>
+        <field name="dashboard_id" ref="sm_dashboard_main"/>
+        <field name="analysis_id" ref="sm_analysis_partner_count"/>
+        <field name="block_type">kpi</field>
+        <field name="width">third</field>
+        <field name="icon">fa-users</field>
+        <field name="target_value">100</field>
+        <field name="show_trend" eval="True"/>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="sm_block_users_pie" model="sm.analytics.block">
+        <field name="name">Users by Company</field>
+        <field name="dashboard_id" ref="sm_dashboard_main"/>
+        <field name="analysis_id" ref="sm_analysis_users_by_company"/>
+        <field name="block_type">doughnut</field>
+        <field name="width">third</field>
+        <field name="icon">fa-pie-chart</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="sm_block_partner_line" model="sm.analytics.block">
+        <field name="name">Contacts by Month</field>
+        <field name="dashboard_id" ref="sm_dashboard_main"/>
+        <field name="analysis_id" ref="sm_analysis_partner_by_month"/>
+        <field name="block_type">area</field>
+        <field name="width">third</field>
+        <field name="icon">fa-line-chart</field>
+        <field name="color">#7048e8</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="sm_block_users_bar" model="sm.analytics.block">
+        <field name="name">Users by Company</field>
+        <field name="dashboard_id" ref="sm_dashboard_main"/>
+        <field name="analysis_id" ref="sm_analysis_users_by_company"/>
+        <field name="block_type">bar</field>
+        <field name="width">full</field>
+        <field name="sequence">40</field>
+    </record>
+</odoo>

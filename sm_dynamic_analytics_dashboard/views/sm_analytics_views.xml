@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Dashboard list                              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <record id="view_sm_analytics_dashboard_list" model="ir.ui.view">
+        <field name="name">sm.analytics.dashboard.list</field>
+        <field name="model">sm.analytics.dashboard</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="block_count" string="Blocks"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Dashboard form                              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <record id="view_sm_analytics_dashboard_form" model="ir.ui.view">
+        <field name="name">sm.analytics.dashboard.form</field>
+        <field name="model">sm.analytics.dashboard</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_sm_open_dashboard" type="object" string="Open Dashboard" class="btn-primary"/>
+                    <button name="action_sm_duplicate" type="object" string="Duplicate"/>
+                    <button name="action_sm_export_json" type="object" string="Export JSON"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Sales Overview"/></h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="company_id"/>
+                            <field name="user_ids" widget="many2many_tags" string="Visible To"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Appearance &amp; Behavior">
+                            <field name="theme_color" widget="color"/>
+                            <field name="accent_color" widget="color"/>
+                            <field name="enable_date_filter"/>
+                            <field name="refresh_interval" string="Auto-Refresh (seconds)"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Dashboard Blocks">
+                            <div class="alert alert-info mb-3" role="alert">
+                                <strong>How blocks work:</strong>
+                                Each row below becomes a widget on your dashboard.
+                                Pick a <em>Data Source</em> (created under Analyses menu),
+                                choose how to <em>Display</em> it (KPI number, chart, or table),
+                                then click <strong>Open Dashboard</strong> to see the result.
+                                You can drag &amp; resize blocks directly on the dashboard.
+                            </div>
+                            <field name="block_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" string="Title" placeholder="e.g. Total Revenue"/>
+                                    <field name="analysis_id" string="Data Source"/>
+                                    <field name="block_type" string="Display As"/>
+                                    <field name="color" widget="color" string="Color"/>
+                                    <field name="width" string="Size" optional="hide"/>
+                                    <field name="icon" optional="hide"/>
+                                    <field name="value_prefix" string="Prefix" optional="hide"/>
+                                    <field name="value_suffix" string="Suffix" optional="hide"/>
+                                    <field name="decimals" optional="hide"/>
+                                    <field name="target_value" string="Goal" optional="hide"/>
+                                    <field name="show_trend" string="Trend" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Email Delivery">
+                            <group>
+                                <field name="email_enabled"/>
+                                <field name="email_frequency" attrs="{'invisible': [('email_enabled', '=', False)]}"/>
+                                <field name="email_user_ids" widget="many2many_tags"
+                                       attrs="{'invisible': [('email_enabled', '=', False)]}"/>
+                                <field name="email_last_sent" readonly="1" attrs="{'invisible': [('email_enabled', '=', False)]}"/>
+                            </group>
+                            <div class="text-muted" attrs="{'invisible': [('email_enabled', '=', False)]}">
+                                A daily cron emails a KPI summary to the recipients on the chosen
+                                frequency. It sends the current value of every KPI and Gauge block.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Block form (popup when clicking a block)    -->
+    <!-- ═══════════════════════════════════════════ -->
+    <record id="view_sm_analytics_block_form" model="ir.ui.view">
+        <field name="name">sm.analytics.block.form</field>
+        <field name="model">sm.analytics.block</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard Block">
+                <sheet>
+                    <group>
+                        <group string="What to show">
+                            <field name="name" string="Title" placeholder="e.g. Monthly Revenue"/>
+                            <field name="analysis_id" string="Data Source"/>
+                            <field name="block_type" string="Display As"/>
+                        </group>
+                        <group string="Appearance">
+                            <field name="color" widget="color"/>
+                            <field name="icon" placeholder="fa-bar-chart"/>
+                            <field name="width" string="Initial Size"/>
+                        </group>
+                    </group>
+                    <group string="Value Formatting" attrs="{'invisible': [('block_type', 'not in', ('kpi', 'table', 'gauge', 'funnel'))]}">
+                        <group>
+                            <field name="value_prefix" string="Prefix" placeholder="e.g. Rp "/>
+                            <field name="value_suffix" string="Suffix" placeholder="e.g. %"/>
+                            <field name="decimals"/>
+                        </group>
+                        <group>
+                            <field name="target_value" string="Goal / Target" attrs="{'invisible': [('block_type', 'not in', ('kpi', 'gauge'))]}"/>
+                            <field name="show_trend" string="Show Trend Badge" attrs="{'invisible': [('block_type', 'not in', ('kpi', 'gauge'))]}"/>
+                            <field name="compare_mode" attrs="{'invisible': [('show_trend', '=', False)]}"/>
+                            <field name="warn_below"/>
+                            <field name="good_above"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sm_analytics_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboards</field>
+        <field name="res_model">sm.analytics.dashboard</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Analysis list                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <record id="view_sm_analytics_analysis_list" model="ir.ui.view">
+        <field name="name">sm.analytics.analysis.list</field>
+        <field name="model">sm.analytics.analysis</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="source_type" string="Source"/>
+                <field name="model_id" string="Model"/>
+                <field name="measure_field_id" string="Measure"/>
+                <field name="groupby_field_id" string="Group By"/>
+                <field name="aggregate"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Analysis form                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <record id="view_sm_analytics_analysis_form" model="ir.ui.view">
+        <field name="name">sm.analytics.analysis.form</field>
+        <field name="model">sm.analytics.analysis</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="sm_test_analysis" type="object" string="Test Analysis" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Sales by Region"/></h1>
+                    </div>
+                    <group>
+                        <group string="Source">
+                            <field name="source_type" widget="radio"/>
+                            <field name="limit" string="Max Rows"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info mb-2" role="alert" attrs="{'invisible': [('source_type', '!=', 'model')]}">
+                        <strong>No coding needed.</strong> Just answer 3 questions:
+                        <em>What records?</em> (Odoo Model, e.g. Sales Orders) -
+                        <em>Measure what?</em> (Calculation + Measure Field, e.g. Sum of Total) -
+                        <em>Break down by?</em> (Group By, e.g. Salesperson).
+                        Then click <strong>Test Analysis</strong> to preview.
+                    </div>
+                    <group attrs="{'invisible': [('source_type', '!=', 'model')]}" string="Model Configuration">
+                        <group>
+                            <field name="model_id" string="What records? (Odoo Model)"/>
+                            <field name="domain" widget="domain" options="{'model': 'model_name'}" string="Filter"/>
+                            <field name="model_name" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="aggregate" string="Measure what? (Calculation)"/>
+                            <field name="measure_field_id" string="On which field?"/>
+                            <field name="groupby_field_id" string="Break down by? (Group By)"/>
+                            <field name="groupby_field_2_id" string="Second Group By (Pivot/Heatmap)"/>
+                            <field name="date_field_id" string="Date Field"/>
+                            <field name="order_by" string="Sort By" placeholder="e.g. amount_total desc"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-warning mb-2" role="alert" attrs="{'invisible': [('source_type', '!=', 'sql')]}">
+                        <strong>Experts only.</strong> Not comfortable with SQL? Switch back to
+                        <em>Point &amp; Click</em> above - it covers most reports with no code.
+                        Query must be a single read-only <code>SELECT</code> and return columns
+                        named <code>label</code> and <code>value</code>.
+                    </div>
+                    <group attrs="{'invisible': [('source_type', '!=', 'sql')]}" string="SQL Query">
+                        <field name="sql_query" nolabel="1" colspan="2"
+                               placeholder="SELECT name AS label, amount_total AS value FROM sale_order LIMIT 10"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sm_analytics_analysis" model="ir.actions.act_window">
+        <field name="name">Analyses</field>
+        <field name="res_model">sm.analytics.analysis</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_sm_analytics_template_wizard_form" model="ir.ui.view">
+        <field name="name">sm.analytics.template.wizard.form</field>
+        <field name="model">sm.analytics.template.wizard</field>
+        <field name="arch" type="xml">
+            <form string="New Dashboard from Template">
+                <group>
+                    <field name="template"/>
+                </group>
+                <p class="text-muted">
+                    A ready-made dashboard with KPIs and charts will be created.
+                    Blocks whose app is not installed are skipped automatically.
+                </p>
+                <footer>
+                    <button name="action_create" type="object" string="Create Dashboard" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sm_analytics_template_wizard" model="ir.actions.act_window">
+        <field name="name">New from Template</field>
+        <field name="res_model">sm.analytics.template.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

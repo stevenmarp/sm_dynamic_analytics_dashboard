@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sm_dynamic_analytics_dashboard.Chart" owl="1">
+        <div class="sm_analytics_canvas_wrap">
+            <canvas t-ref="canvas"/>
+        </div>
+    </t>
+
+    <t t-name="sm_dynamic_analytics_dashboard.Dashboard" owl="1">
+        <div t-att-class="'sm_analytics_shell' + (state.editMode ? ' sm_analytics_editing' : '') + (state.fullscreen ? ' sm_analytics_fullscreen' : '')"
+             t-ref="shell">
+            <div class="sm_analytics_header">
+                <div>
+                    <div class="sm_analytics_eyebrow">Dynamic Analytics</div>
+                    <h1 t-esc="state.dashboard ? state.dashboard.name : 'Analytics Dashboard'"/>
+                </div>
+                <div class="sm_analytics_actions">
+                    <t t-if="state.dashboard and state.dashboard.enable_date_filter">
+                        <div class="sm_analytics_daterange">
+                            <input type="date" t-model="state.dateFrom" t-on-change="smApplyDates"/>
+                            <span class="sm_analytics_daterange_sep">→</span>
+                            <input type="date" t-model="state.dateTo" t-on-change="smApplyDates"/>
+                            <button t-if="state.dateFrom or state.dateTo" class="btn btn-sm btn-light" t-on-click="smClearDates" title="Clear">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                    </t>
+                    <t t-if="state.dashboard and state.dashboard.can_edit">
+                        <t t-if="!state.editMode">
+                            <button class="btn btn-light" t-on-click="smAddBlock">
+                                <i class="fa fa-plus me-1"/>Add Block
+                            </button>
+                            <button class="btn btn-light" t-on-click="smToggleEdit">
+                                <i class="fa fa-pencil me-1"/>Edit Layout
+                            </button>
+                        </t>
+                        <t t-else="">
+                            <button class="btn btn-success" t-on-click="smSaveLayout">
+                                <i class="fa fa-check me-1"/>Save
+                            </button>
+                            <button class="btn btn-light" t-on-click="smToggleEdit">Done</button>
+                        </t>
+                    </t>
+                    <button class="btn btn-light" t-on-click="() => this.smLoad()">Refresh</button>
+                    <button class="btn btn-light" t-on-click="smToggleFullscreen" t-att-title="state.fullscreen ? 'Exit fullscreen' : 'Fullscreen'">
+                        <i t-att-class="'fa ' + (state.fullscreen ? 'fa-compress' : 'fa-expand')"/>
+                    </button>
+                    <button class="btn btn-primary" t-on-click="smOpenConfig">Configure</button>
+                </div>
+            </div>
+
+            <div t-if="state.editMode" class="sm_analytics_edit_hint">
+                <i class="fa fa-arrows me-1"/>Drag blocks by their header to move, drag the bottom-right corner to resize, then click Save.
+            </div>
+
+            <!-- Skeleton loading -->
+            <t t-if="state.loading">
+                <div class="sm_analytics_loading">
+                    <div class="sm_analytics_skel_card sm_sk_sm">
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_title"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_value"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:70%"/>
+                    </div>
+                    <div class="sm_analytics_skel_card sm_sk_sm">
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_title"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_value"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:60%"/>
+                    </div>
+                    <div class="sm_analytics_skel_card sm_sk_sm">
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_title"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_value"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:50%"/>
+                    </div>
+                    <div class="sm_analytics_skel_card sm_sk_md">
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_title"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:90%"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:75%"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:85%"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:60%"/>
+                    </div>
+                    <div class="sm_analytics_skel_card sm_sk_md">
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_title"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:85%"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:70%"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:80%"/>
+                        <div class="sm_analytics_skel_bar sm_analytics_skel_line" style="width:55%"/>
+                    </div>
+                </div>
+            </t>
+            <div t-elif="state.error" class="sm_analytics_error" t-esc="state.error"/>
+            <div t-elif="!state.dashboard" class="sm_analytics_empty">No dashboard found.</div>
+            <div t-elif="!state.blocks.length" class="sm_analytics_empty">This dashboard has no blocks yet. Click Configure to add some.</div>
+            <div t-else="" class="grid-stack sm_analytics_grid" t-ref="grid">
+                <t t-foreach="state.blocks" t-as="block" t-key="block.id">
+                    <div class="grid-stack-item"
+                         t-att-gs-id="block.id"
+                         t-att-gs-x="block.grid.auto ? undefined : block.grid.x"
+                         t-att-gs-y="block.grid.auto ? undefined : block.grid.y"
+                         t-att-gs-w="block.grid.w"
+                         t-att-gs-h="block.grid.h"
+                         t-att-gs-auto-position="block.grid.auto ? 'true' : undefined">
+                        <div class="grid-stack-item-content">
+                            <section t-att-class="'sm_analytics_block sm_analytics_' + block.type">
+                                <div class="sm_analytics_block_head">
+                                    <div>
+                                        <!-- Drag handle (visible in edit mode) -->
+                                        <div class="sm_analytics_drag_handle" title="Drag to reorder">
+                                            <div class="sm_analytics_grip">
+                                                <span class="sm_analytics_grip_dot"/>
+                                                <span class="sm_analytics_grip_dot"/>
+                                                <span class="sm_analytics_grip_dot"/>
+                                                <span class="sm_analytics_grip_dot"/>
+                                                <span class="sm_analytics_grip_dot"/>
+                                                <span class="sm_analytics_grip_dot"/>
+                                            </div>
+                                        </div>
+                                        <span class="sm_analytics_block_icon" t-att-style="'background:' + (block.color || 'var(--sm-theme)')">
+                                            <i t-att-class="'fa ' + (block.icon || 'fa-bar-chart')"/>
+                                        </span>
+                                        <h2 t-esc="block.name"/>
+                                    </div>
+                                    <div class="sm_analytics_block_head_right">
+                                        <button t-if="smIsChart(block) and !state.editMode"
+                                                class="sm_analytics_icon_btn" title="Download PNG"
+                                                t-on-click.stop="() => this.smDownloadBlock(block)">
+                                            <i class="fa fa-download"/>
+                                        </button>
+                                        <span class="sm_analytics_block_type" t-esc="block.type"/>
+                                    </div>
+                                </div>
+
+                                <div class="sm_analytics_block_body">
+                                    <div t-if="block.type === 'kpi'" class="sm_analytics_kpi"
+                                         t-att-class="{'sm_analytics_clickable': block.data.model and !state.editMode}"
+                                         t-on-click="() => this.smDrillTotal(block)">
+                                        <div class="sm_analytics_kpi_top">
+                                            <div t-att-class="'sm_analytics_kpi_value ' + smValueClass(block, block.data.total)" t-esc="smFormat(block, block.data.total)"/>
+                                            <t t-if="block.trend">
+                                                <span t-att-class="'sm_analytics_trend sm_analytics_trend_' + block.trend.direction">
+                                                    <i t-att-class="'fa ' + (block.trend.direction === 'up' ? 'fa-arrow-up' : block.trend.direction === 'down' ? 'fa-arrow-down' : 'fa-minus')"/>
+                                                    <span t-esc="Math.abs(block.trend.delta_pct) + '%'"/>
+                                                </span>
+                                            </t>
+                                        </div>
+                                        <div class="sm_analytics_kpi_label">
+                                            <t t-if="block.trend">vs <t t-esc="block.compare_mode === 'year' ? 'last year' : 'previous period'"/></t>
+                                            <t t-else="">Total</t>
+                                        </div>
+                                        <div t-if="block.target_value" class="sm_analytics_target">
+                                            <div class="sm_analytics_target_track">
+                                                <div class="sm_analytics_target_fill"
+                                                     t-att-style="'width:' + smTargetPercent(block) + '%; background:' + (block.color || 'var(--sm-theme)')"/>
+                                            </div>
+                                            <div class="sm_analytics_target_label">
+                                                <span t-esc="Math.round(smTargetPercent(block)) + '%'"/> of target
+                                                <span t-esc="smFormat(block, block.target_value)"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div t-elif="block.type === 'table'" class="sm_analytics_table_wrap">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Label</th>
+                                                    <th class="text-end">Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="block.data.rows" t-as="row" t-key="row_index"
+                                                    t-att-class="{'sm_analytics_clickable': block.data.model and !state.editMode}"
+                                                    t-on-click="() => this.smDrill(block, row_index)">
+                                                    <td t-esc="row.label || row.name || row.display_name || '-'"/>
+                                                    <td t-att-class="'text-end ' + smValueClass(block, row.value || row.total || row.count || 0)" t-esc="smFormat(block, row.value || row.total || row.count || 0)"/>
+                                                </tr>
+                                                <tr t-if="!block.data.rows.length">
+                                                    <td colspan="2" class="text-center text-muted">No data</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div t-elif="block.type === 'gauge'" class="sm_analytics_gauge"
+                                         t-att-class="{'sm_analytics_clickable': block.data.model and !state.editMode}"
+                                         t-on-click="() => this.smDrillTotal(block)">
+                                        <div class="sm_analytics_gauge_dial"
+                                             t-att-style="'background: conic-gradient(' + (block.color || 'var(--sm-theme)') + ' ' + smTargetPercent(block) + '%, rgba(0,0,0,0.06) 0)'">
+                                            <div class="sm_analytics_gauge_hole">
+                                                <div class="sm_analytics_gauge_pct" t-esc="Math.round(smTargetPercent(block)) + '%'"/>
+                                                <div class="sm_analytics_gauge_val" t-esc="smFormat(block, block.data.total)"/>
+                                            </div>
+                                        </div>
+                                        <div class="sm_analytics_gauge_target">of <t t-esc="smFormat(block, block.target_value)"/></div>
+                                    </div>
+
+                                    <div t-elif="block.type === 'funnel'" class="sm_analytics_funnel">
+                                        <t t-if="block.data.labels.length">
+                                            <div t-foreach="smFunnelStages(block)" t-as="stage" t-key="stage.idx"
+                                                 class="sm_analytics_funnel_row"
+                                                 t-att-class="{'sm_analytics_clickable': block.data.model and !state.editMode}"
+                                                 t-on-click="() => this.smDrill(block, stage.idx)">
+                                                <div class="sm_analytics_funnel_label" t-esc="stage.label"/>
+                                                <div class="sm_analytics_funnel_track">
+                                                    <div class="sm_analytics_funnel_bar"
+                                                         t-att-style="'width:' + smFunnelPct(block, stage.value) + '%; background:' + (block.color || 'var(--sm-theme)')">
+                                                        <span t-esc="smFormat(block, stage.value)"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <div t-else="" class="sm_analytics_empty_inline">No data</div>
+                                    </div>
+
+                                    <div t-elif="block.type === 'pivot' or block.type === 'heatmap'" class="sm_analytics_table_wrap">
+                                        <t t-if="block.data.rows.length">
+                                            <table class="table table-sm sm_analytics_pivot">
+                                                <thead>
+                                                    <tr>
+                                                        <th/>
+                                                        <th t-foreach="block.data.cols" t-as="col" t-key="col_index"
+                                                            class="text-end" t-esc="col"/>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr t-foreach="block.data.rows" t-as="row" t-key="row_index">
+                                                        <th t-esc="row"/>
+                                                        <td t-foreach="block.data.matrix[row_index]" t-as="cell" t-key="cell_index"
+                                                            class="text-end"
+                                                            t-att-style="block.type === 'heatmap' ? smHeatStyle(block, cell) : ''"
+                                                            t-esc="smFormat(block, cell)"/>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </t>
+                                        <div t-else="" class="sm_analytics_empty_inline">No data. Set a Second Group By on the analysis.</div>
+                                    </div>
+
+                                    <div t-elif="smIsChart(block)" class="sm_analytics_chart">
+                                        <t t-if="block.data.labels.length">
+                                            <SmAnalyticsChart block="block" palette="palette" onDrill.bind="smDrill"/>
+                                        </t>
+                                        <div t-else="" class="sm_analytics_empty_inline">No data</div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

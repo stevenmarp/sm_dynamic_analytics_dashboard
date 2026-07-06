@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_sm_dynamic_analytics_dashboard_client" model="ir.actions.client">
+        <field name="name">Analytics Dashboard</field>
+        <field name="tag">sm_dynamic_analytics_dashboard</field>
+    </record>
+
+    <menuitem id="menu_sm_dynamic_analytics_root" name="Analytics Dashboard" sequence="45" web_icon="sm_dynamic_analytics_dashboard,static/description/icon.png"/>
+    <menuitem id="menu_sm_dynamic_analytics_dashboard_open" name="Open Dashboard" parent="menu_sm_dynamic_analytics_root" action="action_sm_dynamic_analytics_dashboard_client" sequence="5" groups="group_sm_analytics_user"/>
+    <menuitem id="menu_sm_dynamic_analytics_template" name="New from Template" parent="menu_sm_dynamic_analytics_root" action="action_sm_analytics_template_wizard" sequence="8" groups="group_sm_analytics_manager"/>
+    <menuitem id="menu_sm_dynamic_analytics_dashboards" name="Dashboards" parent="menu_sm_dynamic_analytics_root" action="action_sm_analytics_dashboard" sequence="10" groups="group_sm_analytics_manager"/>
+    <menuitem id="menu_sm_dynamic_analytics_analyses" name="Analyses" parent="menu_sm_dynamic_analytics_root" action="action_sm_analytics_analysis" sequence="20" groups="group_sm_analytics_manager"/>
+</odoo>
